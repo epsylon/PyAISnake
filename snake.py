@@ -25,7 +25,7 @@ def move(prevKey):
     key = random.choice(moves)
     return key
 
-# translate a thought to a text
+# translate a thought into a text
 def text_to_thought(key):
     if key == KEY_UP:
         thought = "UP"
@@ -66,12 +66,16 @@ def init(evol, record, max_moves):
         key = move(prevKey) # AI model reply (Brain -> HERE!)
         moves += 1
         thought = text_to_thought(key)
-        key = key if event == -1 else event 
+        key = key if event == -1 else event
         if key == ord(' '): # SPACE BAR for pause
             key = -1 # pause
-            win.addstr(9, 18, ' GAME PAUSED... ')
+            paused = ' INFO: GAME PAUSED... '
+            win.addstr(9, 18, paused)
             while key != ord(' '):
+                paused = '                      '
                 key = win.getch()
+            win.addstr(9, 18, paused)
+            win.addch(food[0], food[1], '*')
             key = prevKey
             continue
         if score >= record: # NEW record!
