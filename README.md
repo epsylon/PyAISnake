@@ -10,8 +10,14 @@
 ----------
 
 #### Executing:
+  
+  chmod a+x snake.py
 
-  ./snake.py (python snake.py)
+  ./snake.py 
+
+  or 
+
+  python2.7 snake.py
 
 ----------
 

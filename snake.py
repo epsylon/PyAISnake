@@ -10,30 +10,28 @@ Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import curses, random, time
 from curses import KEY_RIGHT, KEY_LEFT, KEY_UP, KEY_DOWN
 
-# generate a random AI thought (evading suicidal moves)
-def move(prevKey):
-    if prevKey == KEY_UP:
-        moves = [KEY_UP, KEY_LEFT, KEY_RIGHT]
-    elif prevKey == KEY_LEFT:
-        moves = [KEY_UP, KEY_LEFT, KEY_DOWN]
-    elif prevKey == KEY_RIGHT:
-        moves = [KEY_UP, KEY_RIGHT, KEY_DOWN]
-    elif prevKey == KEY_DOWN:
-        moves = [KEY_LEFT, KEY_RIGHT, KEY_DOWN]
-    else:
-        moves = [KEY_UP, KEY_LEFT, KEY_RIGHT, KEY_DOWN]
-    key = random.choice(moves)
-    return key
+######################################################################3
+
+# import AI models into sandbox
+from models.AIBob import AIBob
+AIBob = AIBob() # BoB
+
+# extract name from players
+def extract_name(p):
+    name = AIBob.extractName() # BoB
+    return name
+
+######################################################################3
 
 # translate a thought into a text
-def text_to_thought(key):
-    if key == KEY_UP:
+def text_to_thought(move):
+    if move == KEY_UP:
         thought = "UP"
-    elif key == KEY_LEFT:
+    elif move == KEY_LEFT:
         thought = "LEFT"
-    elif key == KEY_RIGHT:
+    elif move == KEY_RIGHT:
         thought = "RIGHT"
-    elif key == KEY_DOWN:
+    elif move == KEY_DOWN:
         thought = "DOWN"
     else:
         thought = "LEARNING..."
@@ -42,47 +40,76 @@ def text_to_thought(key):
 # create matrix (with some random init values)
 def init(evol, record, max_moves):
     curses.initscr()
-    win = curses.newwin(20, 60, 0, 0)
+    x_height = 0
+    y_height = 20
+    x_width = 60
+    y_width = 0
+    win = curses.newwin(y_height, x_width, x_height, y_width)
     win.keypad(1)
     curses.noecho()
     curses.curs_set(0)
     win.border(0)
     win.nodelay(1)
-    score = 0
-    thought = "LEARNING..."
-    moves = 0
-    key = move(None)
-    food = [random.randint(1, 18), random.randint(1, 58)]
-    snake = [[random.randint(0, 11),random.randint(0, 11)], [random.randint(0, 11),random.randint(0, 11)], [random.randint(0, 11),random.randint(0, 11)]]
+    food = [random.randint(1, 18), random.randint(1, 58)] # set resources into matrix
     win.addch(food[0], food[1], '*')
+    p1_a1 = random.randint(1, 10)
+    p1_a2 = random.randint(1, 10)
+    p1_b1 = random.randint(1, 10)
+    p1_b2 = random.randint(1, 10)
+    p1_c1 = random.randint(1, 10)
+    p1_c2 = random.randint(1, 10)
+    snake = [[p1_a1,p1_a2], [p1_b1,p1_b2], [p1_c1,p1_c2]] # generate starting point
+    startGame(win, food, snake, evol, record, max_moves) # start NEW GAME!
+
+# start a new game simulation
+def startGame(win, food, snake, evol, record, max_moves):
+    moves = 0
+    score = 0
+    thought = "WAKING UP..."
+
+######################################################################3
+
+    name = AIBob.extractName() # BoB
+    move = AIBob.makeMove(win, None, food, snake) # BoB
+
+######################################################################3
+
+    moves += 1
+    thought = text_to_thought(move)
     # build game
-    while key != 27:
+    while move != 27: # SPACEBAR
         win.border(0)
         win.addstr(0, 4, '| Moves: '+str(moves)+' - Max: '+str(max_moves)+' | Score: '+str(score)+' - Record: '+str(record)+' |')
-        win.addstr(19, 4, '| PyAISnake -> MUTATION: '+str(evol)+' [IDEA: '+str(thought)+'] |')
+        win.addstr(19, 4, '| '+str(name)+' -> GENERATION: '+str(evol)+' [IDEA: '+str(thought)+'] |')
         win.timeout(150 - (len(snake)/5 + len(snake)/10)%120) # if > length: > speed
-        prevKey = key  
+        prevMove = move  
         event = win.getch()
-        key = move(prevKey) # AI model reply (Brain -> HERE!)
+
+######################################################################3
+
+        move = AIBob.makeMove(win, prevMove, food, snake) # BoB
+
+######################################################################3
+
         moves += 1
-        thought = text_to_thought(key)
-        key = key if event == -1 else event
-        if key == ord(' '): # SPACE BAR for pause
-            key = -1 # pause
-            paused = ' INFO: GAME PAUSED... '
-            win.addstr(9, 18, paused)
-            while key != ord(' '):
-                paused = '                      '
-                key = win.getch()
-            win.addstr(9, 18, paused)
+        thought = text_to_thought(move)
+        move = move if event == -1 else event
+        if move != KEY_UP and move != KEY_DOWN and move != KEY_LEFT and move != KEY_RIGHT : # ANY KEY for pause
+            move = -1 # pause
+            paused = ' GAME PAUSED: PRESS -SPACEBAR- TO RESTORE'
+            win.addstr(9, 9, paused)
+            while move != ord(' '):
+                paused = '                                          ' # 42
+                move = win.getch()
+            win.addstr(9, 9, paused)
             win.addch(food[0], food[1], '*')
-            key = prevKey
+            move = prevMove
             continue
         if score >= record: # NEW record!
             record = score
         if moves >= max_moves: # NEW max moves!
             max_moves = moves
-        snake.insert(0, [snake[0][0] + (key == KEY_DOWN and 1) + (key == KEY_UP and -1), snake[0][1] + (key == KEY_LEFT and -1) + (key == KEY_RIGHT and 1)])
+        snake.insert(0, [snake[0][0] + (move == KEY_DOWN and 1) + (move == KEY_UP and -1), snake[0][1] + (move == KEY_LEFT and -1) + (move == KEY_RIGHT and 1)])
         if snake[0][0] == 0: 
             snake[0][0] = 18
         if snake[0][1] == 0: 
