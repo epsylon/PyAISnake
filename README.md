@@ -17,7 +17,7 @@
 
   or 
 
-  python2.7 snake.py
+  python3 snake.py
 
 ----------
 

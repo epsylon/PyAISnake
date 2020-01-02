@@ -1,7 +1,7 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-"
 """
-PyAISnake - 2018 - by psy (epsylon@riseup.net)
+PyAISnake - 2018/2020 - by psy (epsylon@riseup.net)
 
 You should have received a copy of the GNU General Public License along
 with PyAISnake; if not, write to the Free Software Foundation, Inc., 51
@@ -81,7 +81,7 @@ def startGame(win, food, snake, evol, record, max_moves):
         win.border(0)
         win.addstr(0, 4, '| Moves: '+str(moves)+' - Max: '+str(max_moves)+' | Score: '+str(score)+' - Record: '+str(record)+' |')
         win.addstr(19, 4, '| '+str(name)+' -> GENERATION: '+str(evol)+' [IDEA: '+str(thought)+'] |')
-        win.timeout(150 - (len(snake)/5 + len(snake)/10)%120) # if > length: > speed
+        win.timeout(150 - int((len(snake)/5) + int(len(snake)/10)%120)) # if > length: > speed
         prevMove = move  
         event = win.getch()
 
